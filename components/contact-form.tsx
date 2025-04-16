@@ -1,0 +1,219 @@
+"use client"
+
+import type React from "react"
+import { useState, useRef } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { AlertCircle, CheckCircle2, Send, Loader2 } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { motion } from "framer-motion"
+import emailjs from "@emailjs/browser"
+
+export function ContactForm() {
+  const formRef = useRef<HTMLFormElement>(null)
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  })
+  const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success" | "error">("idle")
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required"
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required"
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address"
+    }
+
+    if (!formData.subject.trim()) {
+      newErrors.subject = "Subject is required"
+    }
+
+    if (!formData.message.trim()) {
+      newErrors.message = "Message is required"
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+
+    // Clear error when user types
+    if (errors[name]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors[name]
+        return newErrors
+      })
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!validateForm()) return
+
+    setFormStatus("submitting")
+
+    try {
+      // Using EmailJS with the provided credentials
+      await emailjs.sendForm(
+        "service_dgh78ib", // Service ID
+        "template_75ham2s", // Template ID
+        formRef.current!,
+        "qx2jxijBdwq8Vvg0C", // Public Key
+      )
+
+      // Reset form
+      setFormData({ name: "", email: "", subject: "", message: "" })
+      setFormStatus("success")
+
+      // Reset success message after 5 seconds
+      setTimeout(() => {
+        setFormStatus("idle")
+      }, 5000)
+    } catch (error) {
+      console.error("Form submission error:", error)
+      setFormStatus("error")
+    }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      viewport={{ once: true }}
+    >
+      <div className="bg-card border rounded-xl p-6 md:p-8 shadow-lg">
+        <h3 className="text-xl font-semibold mb-6">Send Me a Message</h3>
+
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+          {formStatus === "success" && (
+            <Alert className="bg-green-500/10 text-green-500 border-green-500/20">
+              <CheckCircle2 className="h-4 w-4" />
+              <AlertDescription>Your message has been sent successfully! I'll get back to you soon.</AlertDescription>
+            </Alert>
+          )}
+
+          {formStatus === "error" && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>There was an error sending your message. Please try again later.</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Your name"
+                disabled={formStatus === "submitting"}
+                className={`placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none ${
+                  errors.name ? "border-red-500" : ""
+                }`}
+              />
+              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="your.email@example.com"
+                disabled={formStatus === "submitting"}
+                className={`placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none ${
+                  errors.email ? "border-red-500" : ""
+                }`}
+              />
+              {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="subject">Subject</Label>
+            <Input
+              id="subject"
+              name="subject"
+              value={formData.subject}
+              onChange={handleChange}
+              placeholder="What is this regarding?"
+              disabled={formStatus === "submitting"}
+              className={`placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none ${
+                errors.subject ? "border-red-500" : ""
+              }`}
+            />
+            {errors.subject && <p className="text-sm text-red-500">{errors.subject}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="message">Message</Label>
+            <Textarea
+              id="message"
+              name="message"
+              value={formData.message}
+              onChange={handleChange}
+              placeholder="Your message..."
+              rows={5}
+              maxLength={500} // Set the maximum character limit
+              disabled={formStatus === "submitting"}
+              className={`placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none ${
+                errors.message ? "border-red-500" : ""
+              }`}
+            />
+            <p className="text-xs text-muted-foreground">
+              {formData.message.length}/500 characters
+            </p>
+            {errors.message && <p className="text-sm text-red-500">{errors.message}</p>}
+          </div>
+
+          <Button
+            type="submit"
+            disabled={formStatus === "submitting"}
+            className="w-full hover:bg-primary/90 active:scale-95 transition-transform"
+            size="lg"
+          >
+            <span className="flex items-center justify-center">
+              {formStatus === "submitting" ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="mr-2 h-4 w-4" />
+                  Send Message
+                </>
+              )}
+            </span>
+          </Button>
+
+          <p className="text-xs text-center text-muted-foreground mt-4">
+            Your message will be sent directly to my inbox at 8harath.k@gmail.com
+          </p>
+        </form>
+      </div>
+    </motion.div>
+  )
+}
