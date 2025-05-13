@@ -24,7 +24,10 @@ export function ContactForm() {
 
   // Initialize EmailJS
   useEffect(() => {
-    emailjs.init("qx2jxijBdwq8Vvg0C")
+    emailjs.init({
+      publicKey: "qx2jxijBdwq8Vvg0C",
+      limitRate: true,
+    })
   }, [])
 
   const validateForm = () => {
@@ -74,22 +77,37 @@ export function ContactForm() {
     setFormStatus("submitting")
 
     try {
+      if (!formRef.current) {
+        throw new Error("Form reference is not available")
+      }
+
+      const templateParams = {
+        user_name: formData.user_name,
+        user_email: formData.user_email,
+        subject: formData.subject,
+        message: formData.message,
+      }
+
       // Using EmailJS with the provided credentials
-      await emailjs.sendForm(
-        "service_dgh78ib", // Service ID
-        "template_75ham2s", // Template ID
-        formRef.current!,
-        "qx2jxijBdwq8Vvg0C" // Public Key
+      const result = await emailjs.send(
+        "service_dgh78ib",
+        "template_75ham2s",
+        templateParams,
+        "qx2jxijBdwq8Vvg0C"
       )
 
-      // Reset form
-      setFormData({ user_name: "", user_email: "", subject: "", message: "" })
-      setFormStatus("success")
+      if (result.status === 200) {
+        // Reset form
+        setFormData({ user_name: "", user_email: "", subject: "", message: "" })
+        setFormStatus("success")
 
-      // Reset success message after 5 seconds
-      setTimeout(() => {
-        setFormStatus("idle")
-      }, 5000)
+        // Reset success message after 5 seconds
+        setTimeout(() => {
+          setFormStatus("idle")
+        }, 5000)
+      } else {
+        throw new Error("Failed to send email")
+      }
     } catch (error) {
       console.error("Form submission error:", error)
       setFormStatus("error")
