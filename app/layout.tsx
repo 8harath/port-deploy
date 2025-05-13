@@ -3,6 +3,7 @@ import "@/app/globals.css"
 import type { Metadata } from "next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Syne } from "next/font/google"
+import { Analytics } from "@vercel/analytics/next"
 
 // Initialize the Syne font with Next.js font optimization
 const syne = Syne({
@@ -57,6 +58,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange={false}>
           {children}
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   )
