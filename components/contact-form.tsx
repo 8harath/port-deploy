@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { AlertCircle, CheckCircle2, Send, Loader2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import emailjs from "@emailjs/browser"
 
 export function ContactForm() {
@@ -26,7 +26,9 @@ export function ContactForm() {
   useEffect(() => {
     emailjs.init({
       publicKey: "qx2jxijBdwq8Vvg0C",
-      limitRate: true,
+      limitRate: {
+        throttle: 1000,
+      },
     })
   }, [])
 
@@ -214,22 +216,53 @@ export function ContactForm() {
           <Button
             type="submit"
             disabled={formStatus === "submitting"}
-            className="w-full hover:bg-primary/90 active:scale-95 transition-transform"
+            className="w-full hover:bg-primary/90 active:scale-95 transition-transform relative overflow-hidden"
             size="lg"
           >
-            <span className="flex items-center justify-center">
+            <AnimatePresence mode="wait">
               {formStatus === "submitting" ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending...
-                </>
+                <motion.span
+                  key="loading"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex items-center justify-center"
+                >
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                  >
+                    <Loader2 className="mr-2 h-4 w-4" />
+                  </motion.div>
+                  <span>Sending...</span>
+                </motion.span>
               ) : (
-                <>
+                <motion.span
+                  key="send"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex items-center justify-center"
+                >
                   <Send className="mr-2 h-4 w-4" />
                   Send Message
-                </>
+                </motion.span>
               )}
-            </span>
+            </AnimatePresence>
+            {formStatus === "submitting" && (
+              <motion.div
+                className="absolute inset-0 bg-primary/20"
+                initial={{ x: "-100%" }}
+                animate={{ x: "100%" }}
+                transition={{
+                  duration: 0.8,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+            )}
           </Button>
 
           <p className="text-xs text-center text-muted-foreground mt-4">

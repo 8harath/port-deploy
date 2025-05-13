@@ -1,55 +1,35 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useEffect } from "react"
-import Image from "next/image"
-import logo from "/public/images/logo-me.png" // Replace with the actual path to your logo
 
-interface LoadingAnimationProps {
-  onLoadingComplete?: () => void
-}
-
-export function LoadingAnimation({ onLoadingComplete }: LoadingAnimationProps) {
-  useEffect(() => {
-    // Simple timeout to simulate loading
-    const timer = setTimeout(() => {
-      if (onLoadingComplete) onLoadingComplete()
-    }, 2000)
-
-    return () => clearTimeout(timer)
-  }, [onLoadingComplete])
-
+export function LoadingAnimation() {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background">
-      {/* Rotating Logo */}
+    <div className="fixed inset-0 bg-background z-50 flex items-center justify-center">
       <motion.div
-        animate={{
-          rotate: 360,
-        }}
-        transition={{
-          duration: 2,
-          ease: "linear",
-          repeat: Number.POSITIVE_INFINITY,
-        }}
-        className="w-20 h-20 mb-6"
+        className="flex flex-col items-center gap-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.3 }}
       >
-        <Image src={logo} alt="Logo" width={80} height={80} className="w-full h-full object-contain" />
-      </motion.div>
-
-      {/* Loading Line */}
-      <div className="relative w-48 h-2 bg-gray-300 rounded-full overflow-hidden">
         <motion.div
-          animate={{
-            x: ["0%", "100%"],
-          }}
+          className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full"
+          animate={{ rotate: 360 }}
           transition={{
-            duration: 1.5,
+            duration: 0.8,
+            repeat: Infinity,
             ease: "linear",
-            repeat: Number.POSITIVE_INFINITY,
           }}
-          className="absolute left-0 top-0 w-8 h-2 bg-primary rounded-full"
         />
-      </div>
+        <motion.p
+          className="text-lg font-medium text-primary/80"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          Loading...
+        </motion.p>
+      </motion.div>
     </div>
   )
 }
