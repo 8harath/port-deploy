@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -14,25 +14,30 @@ import emailjs from "@emailjs/browser"
 export function ContactForm() {
   const formRef = useRef<HTMLFormElement>(null)
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
+    user_name: "",
+    user_email: "",
     subject: "",
     message: "",
   })
   const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success" | "error">("idle")
   const [errors, setErrors] = useState<Record<string, string>>({})
 
+  // Initialize EmailJS
+  useEffect(() => {
+    emailjs.init("qx2jxijBdwq8Vvg0C")
+  }, [])
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required"
+    if (!formData.user_name.trim()) {
+      newErrors.user_name = "Name is required"
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address"
+    if (!formData.user_email.trim()) {
+      newErrors.user_email = "Email is required"
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.user_email)) {
+      newErrors.user_email = "Please enter a valid email address"
     }
 
     if (!formData.subject.trim()) {
@@ -74,11 +79,11 @@ export function ContactForm() {
         "service_dgh78ib", // Service ID
         "template_75ham2s", // Template ID
         formRef.current!,
-        "qx2jxijBdwq8Vvg0C", // Public Key
+        "qx2jxijBdwq8Vvg0C" // Public Key
       )
 
       // Reset form
-      setFormData({ name: "", email: "", subject: "", message: "" })
+      setFormData({ user_name: "", user_email: "", subject: "", message: "" })
       setFormStatus("success")
 
       // Reset success message after 5 seconds
@@ -118,36 +123,36 @@ export function ContactForm() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="user_name">Name</Label>
               <Input
-                id="name"
-                name="name"
-                value={formData.name}
+                id="user_name"
+                name="user_name"
+                value={formData.user_name}
                 onChange={handleChange}
                 placeholder="Your name"
                 disabled={formStatus === "submitting"}
                 className={`placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none ${
-                  errors.name ? "border-red-500" : ""
+                  errors.user_name ? "border-red-500" : ""
                 }`}
               />
-              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+              {errors.user_name && <p className="text-sm text-red-500">{errors.user_name}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="user_email">Email</Label>
               <Input
-                id="email"
-                name="email"
+                id="user_email"
+                name="user_email"
                 type="email"
-                value={formData.email}
+                value={formData.user_email}
                 onChange={handleChange}
                 placeholder="your.email@example.com"
                 disabled={formStatus === "submitting"}
                 className={`placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none ${
-                  errors.email ? "border-red-500" : ""
+                  errors.user_email ? "border-red-500" : ""
                 }`}
               />
-              {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
+              {errors.user_email && <p className="text-sm text-red-500">{errors.user_email}</p>}
             </div>
           </div>
 
@@ -176,7 +181,7 @@ export function ContactForm() {
               onChange={handleChange}
               placeholder="Your message..."
               rows={5}
-              maxLength={500} // Set the maximum character limit
+              maxLength={500}
               disabled={formStatus === "submitting"}
               className={`placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none ${
                 errors.message ? "border-red-500" : ""
